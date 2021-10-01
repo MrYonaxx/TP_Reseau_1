@@ -3,6 +3,8 @@
 
 #include "NetworkLib.h"
 
+#include <thread>
+
 using namespace std;
 
 /*int main()
@@ -35,103 +37,91 @@ namespace uqac::networkLib
 		WSACleanup();
 	}
 
-	std::shared_ptr<Connection> NetworkLib::Connect(string adressIP, int port, int protocol = 0)
+	void NetworkLib::Connect(string adressIP, int port, int protocol)
 	{
-		// On créer la socket en fonction du protocole
-		SOCKET s = socket(AF_INET, SOCK_STREAM, protocol);
-		if (s < 0) // error
-		{
-			return;
-		}
-
+		connectSocket = INVALID_SOCKET;
 
 		// Setup adresse serveur
 		sockaddr_in info;
-		info.sin_family = AF_INET;
+		info.sin_family = AF_INET6;
 		info.sin_port = htons(port);
-		inet_pton(AF_INET, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip
+		inet_pton(AF_INET6, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip	
 
-
-		// connection au server
-		int connectionResult = connect(s, (sockaddr*)&info, sizeof(info));
-		if (connectionResult < 0) // error
-		{
-			closesocket(s);
-			Close();		
-			return nullptr;
-		}
-
-		// On a réussi à se connecter donc on créer et on renvoit la connection 
-		if (protocol == 0)
-		{
-			return make_shared<ConnectionTCP>(s);
-		}
-		return make_shared<ConnectionUDP>(s);
-
-		// Lancer le thread
-	}
-
-	void NetworkLib::Listen(int port, int protocol = 0)
-	{
-		listeningSocket = socket(AF_INET, SOCK_STREAM, protocol);
-		if (listeningSocket < 0) // error
-		{
+		//Creation de la socket
+		connectSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		if (connectSocket == INVALID_SOCKET) {
+			WSACleanup();
 			return;
 		}
 
-		// Setup socket info
-		sockaddr_in info;
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;
+		//Connexion au serveur
+		int iResult = connect(connectSocket, (sockaddr*)&info, sizeof(info));
+		if (iResult == SOCKET_ERROR) {
+			closesocket(connectSocket);
+			connectSocket == INVALID_SOCKET;
+		}
+		//Maybe try to reconnect here  ? :)
 
-		bind(listeningSocket, (sockaddr*)&info, sizeof(info));
-		listen(listeningSocket, SOMAXCONN);
+		if (iResult == INVALID_SOCKET) {
+			WSACleanup();
+			return;
+		}
+
+		// Lancer le thread
+		
+	}
+
+	void NetworkLib::Listen(string adressIP, int port, int protocol = 0)
+	{
+		// Setup adresse serveur
+		sockaddr_in info;
+		info.sin_family = AF_INET6;
+		info.sin_port = htons(port);
+		inet_pton(AF_INET6, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip
+
+		//Creation du socket
+		listeningSocket = INVALID_SOCKET;
+		listeningSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		if (listeningSocket == INVALID_SOCKET) {
+			WSACleanup();
+			return;
+		}
+
+		//Setup TCP Listening
+		int iResult = bind(listeningSocket, (sockaddr*)&info, sizeof(info));
+		if (iResult == SOCKET_ERROR) {
+			closesocket(listeningSocket);
+			WSACleanup();
+			return;
+		}
+		
+		//Listening
+		if (listen(listeningSocket, 255) == SOCKET_ERROR) {
+			closesocket(listeningSocket);
+			WSACleanup();
+			return;
+		}
 
 		// Lancer le thread 
 	}
 
-
-
-
-	void NetworkLib::UpdateListenServer(Connection s)
+	void NetworkLib::ListenThread(SOCKET s)
 	{
+		fd_set readingSet;
+		FD_ZERO(&readingSet);
+		fd_set writingSet;
+		FD_ZERO(&writingSet);
 
-		fd_set current_sockets;
-		fd_set ready_sockets; // sert de copie de current socket
+		u_long nonBlocking = 1;
+		ioctlsocket(s, FIONBIO, &nonBlocking);
+		while (true) {
+			FD_SET(s, &readingSet);
 
-		// initiliase
-		FD_ZERO(&current_sockets);
-		// Ajoute listening aux sockets
-		FD_SET(listeningSocket, &current_sockets);
+			int ret = select(0, &readingSet, &writingSet, nullptr, nullptr);
 
-		while (true)
-		{
-			ready_sockets = current_sockets;
-			int socketCount = select(0, &ready_sockets, nullptr, nullptr, nullptr);
-			if (socketCount < 0)
-			{
-				// error
-				return;
-			}
-
-			// On parcourt les sockets ready
-			for (int i = 0; i < socketCount; i++)
-			{
-				// Nouvelle connection
-				if (FD_ISSET(listeningSocket, &ready_sockets))
-				{
-					// Le terminal fait ses trucs
-
-					// On ajoute la nouvelle connection au set
-					/*SOCKET client = accept(listeningTCP, nullptr, nullptr);
-					FD_SET(client, &current_sockets);
-					*/
-				}
-				else
-				{
-					// Connection fait ses trucs
-					//recv();
+			if (ret > 0) {
+				if (FD_ISSET(s, &readingSet)) {
+					///JE SAIS  PAS
 				}
 			}
 		}

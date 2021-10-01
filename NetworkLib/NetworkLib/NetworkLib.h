@@ -20,18 +20,19 @@ namespace uqac::networkLib
 
 	private:
 		SOCKET listeningSocket;
+		SOCKET connectSocket;
 
 	public:
 
 		int Initialize();
 		void Close();
 
-		std::shared_ptr<Connection> Connect(string adressIP, int port, int protocol = 0);
-		void Listen(int port, int protocol = 0);
+		void Connect(std::string adressIP, int port, int protocol = 0);
+		void Listen(string adressIP, int port, int protocol = 0);
 
 
 		// Pour les thread 
-		void UpdateListenServer(Connection s);
+		void ListenThread(SOCKET s);
 	};
 
 	/*struct Config {
