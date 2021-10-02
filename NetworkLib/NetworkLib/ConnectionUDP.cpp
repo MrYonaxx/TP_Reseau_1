@@ -12,6 +12,8 @@ namespace uqac::networkLib
 		closesocket(s);
 	}
 
+	
+
 	int ConnectionUDP::Send(int port)
 	{
 		sockaddr_in info;
@@ -23,11 +25,14 @@ namespace uqac::networkLib
 		info.sin_addr.S_un.S_addr = INADDR_ANY;
 
         //send the message
-        if (sendto(s, sendbuf, strlen(sendbuf), 0, (struct sockaddr*)&info, slen) == SOCKET_ERROR)
+        if (sendto(s, buf, strlen(buf), 0, (struct sockaddr*)&info, slen) == SOCKET_ERROR)
         {
             printf("sendto() failed with error code : %d", WSAGetLastError());
             exit(EXIT_FAILURE);
         }
+
+		free(buf);
+
 		return 0;
 	}
 
@@ -41,13 +46,13 @@ namespace uqac::networkLib
 		info.sin_port = htons(port);
 		info.sin_addr.S_un.S_addr = INADDR_ANY;
 
-		if (recvfrom(s, recvbuf, strlen(recvbuf), 0, (struct sockaddr*)&info, &slen) == SOCKET_ERROR)
+		if (recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen) == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
 
-		free(recvbuf);
+		free(buf);
 
 		return 0;
 	}

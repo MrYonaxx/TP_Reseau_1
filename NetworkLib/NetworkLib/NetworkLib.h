@@ -1,7 +1,7 @@
 ﻿// NetworkLib.h : fichier Include pour les fichiers Include système standard,
 // ou les fichiers Include spécifiques aux projets.
 
-#pragma once
+#pragma comment(lib, "Ws2_32.lib")
 
 #include <iostream>
 
@@ -9,6 +9,7 @@
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <thread>
 #include "Connection.h"
 #include "ConnectionTCP.h"
 #include "ConnectionUDP.h"
@@ -20,18 +21,19 @@ namespace uqac::networkLib
 
 	private:
 		SOCKET listeningSocket;
+		SOCKET connectSocket;
 
 	public:
 
 		int Initialize();
 		void Close();
 
-		std::shared_ptr<Connection> Connect(string adressIP, int port, int protocol = 0);
-		void Listen(int port, int protocol = 0);
+		std::shared_ptr<Connection> Connect(std::string adressIP, int port, int protocol = 0);
+		void Listen(std::string adressIP, int port, int protocol);
 
 
 		// Pour les thread 
-		void UpdateListenServer(Connection s);
+		void UpdateListen(Connection s);
 	};
 
 	/*struct Config {

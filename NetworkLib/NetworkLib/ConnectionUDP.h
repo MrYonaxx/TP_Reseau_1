@@ -8,7 +8,7 @@ namespace uqac::networkLib
 {
 	class ConnectionUDP : public Connection
 	{
-
+	public:
 		ConnectionUDP();
 		ConnectionUDP(SOCKET s); // faudrait filer un pointeur
 		~ConnectionUDP();

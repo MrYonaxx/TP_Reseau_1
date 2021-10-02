@@ -5,7 +5,7 @@ using namespace std;
 namespace uqac::networkLib
 {
 
-	ConnectionTCP Terminal::Accept(SOCKET ListenSocket)
+	std::shared_ptr<Connection> Terminal::Accept(SOCKET ListenSocket)
 	{
 		// create socket
 		SOCKET ClientSocket;
@@ -13,13 +13,11 @@ namespace uqac::networkLib
 
 		ClientSocket = accept(ListenSocket, NULL, NULL);
 		if (ClientSocket == INVALID_SOCKET) {
-			cout << "Coulndt accept : ", WSAGetLastError();
+			cout << "Couldnt accept : ", WSAGetLastError();
 			closesocket(ListenSocket);
-			WSACleanup();
-			return;
+			return nullptr;
 		}
-		ConnectionTCP *connection = new ConnectionTCP();
-		return *connection;
+		return make_shared<ConnectionTCP>(ClientSocket);
 	}
 
 

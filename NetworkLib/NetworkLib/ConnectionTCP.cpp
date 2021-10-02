@@ -22,11 +22,10 @@ namespace uqac::networkLib
 
 	int ConnectionTCP::Send()
 	{
-		int iResult = send(s, sendbuf, (int)strlen(sendbuf), 0);
+		int iResult = send(s, buf, (int)strlen(buf), 0);
 		if (iResult == SOCKET_ERROR) {
-			std::cout << "send failed : ", WSAGetLastError();
+			std::cerr << "send failed : ", WSAGetLastError();
 			closesocket(s);
-			WSACleanup();
 			return -1;
 		}
 		//cout << "Send !";
@@ -35,7 +34,16 @@ namespace uqac::networkLib
 
 	int ConnectionTCP::Receive()
 	{
-		return 0;
+		int iResult;
+		do {
+			iResult = recv(s, buf, (int)strlen(buf), 0);
+			if (iResult > 0) {
+				std::string message(buf, iResult);
+				//Call back message
+				return 1;
+			}
+			return -1;
+		} while (iResult > 0);
 	}
 
 }

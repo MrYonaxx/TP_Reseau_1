@@ -5,11 +5,11 @@
 
 using namespace std;
 
-/*int main()
+int main()
 {
 	cout << "Hello CMake." << endl;
 	return 0;
-}*/
+}
 
 
 namespace uqac::networkLib
@@ -35,66 +35,81 @@ namespace uqac::networkLib
 		WSACleanup();
 	}
 
-	std::shared_ptr<Connection> NetworkLib::Connect(string adressIP, int port, int protocol = 0)
+	std::shared_ptr<Connection> NetworkLib::Connect(string adressIP, int port, int protocol)
 	{
-		// On créer la socket en fonction du protocole
-		SOCKET s = socket(AF_INET, SOCK_STREAM, protocol);
-		if (s < 0) // error
-		{
-			return;
-		}
-
+		connectSocket = INVALID_SOCKET;
 
 		// Setup adresse serveur
 		sockaddr_in info;
-		info.sin_family = AF_INET;
+		info.sin_family = AF_INET6;
 		info.sin_port = htons(port);
-		inet_pton(AF_INET, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip
+		inet_pton(AF_INET6, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip	
 
-
-		// connection au server
-		int connectionResult = connect(s, (sockaddr*)&info, sizeof(info));
-		if (connectionResult < 0) // error
-		{
-			closesocket(s);
-			Close();		
+		//Creation de la socket
+		connectSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		if (connectSocket == INVALID_SOCKET) {
+			WSACleanup();
 			return nullptr;
 		}
 
-		// On a réussi à se connecter donc on créer et on renvoit la connection 
-		if (protocol == 0)
-		{
-			return make_shared<ConnectionTCP>(s);
+		//Connexion au serveur
+		int iResult = connect(connectSocket, (sockaddr*)&info, sizeof(info));
+		if (iResult == SOCKET_ERROR) {
+			closesocket(connectSocket);
+			connectSocket = INVALID_SOCKET;
 		}
-		return make_shared<ConnectionUDP>(s);
+		//Maybe try to reconnect here  ? :)
+
+		if (iResult == INVALID_SOCKET) {
+			WSACleanup();
+			return nullptr;
+		}
 
 		// Lancer le thread
+
+		// Return la connection
+		if (protocol == 0) {
+			return make_shared<ConnectionTCP>(connectSocket);
+		}
+		return make_shared<ConnectionUDP>(connectSocket);
+		
 	}
 
-	void NetworkLib::Listen(int port, int protocol = 0)
+	void NetworkLib::Listen(string adressIP, int port, int protocol = 0)
 	{
-		listeningSocket = socket(AF_INET, SOCK_STREAM, protocol);
-		if (listeningSocket < 0) // error
-		{
+		// Setup adresse serveur
+		sockaddr_in info;
+		info.sin_family = AF_INET6;
+		info.sin_port = htons(port);
+		inet_pton(AF_INET6, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip
+
+		//Creation du socket
+		listeningSocket = INVALID_SOCKET;
+		listeningSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		if (listeningSocket == INVALID_SOCKET) {
+			WSACleanup();
 			return;
 		}
 
-		// Setup socket info
-		sockaddr_in info;
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;
-
-		bind(listeningSocket, (sockaddr*)&info, sizeof(info));
-		listen(listeningSocket, SOMAXCONN);
+		//Setup TCP Listening
+		int iResult = bind(listeningSocket, (sockaddr*)&info, sizeof(info));
+		if (iResult == SOCKET_ERROR) {
+			closesocket(listeningSocket);
+			WSACleanup();
+			return;
+		}
+		
+		//Listening
+		if (listen(listeningSocket, 255) == SOCKET_ERROR) {
+			closesocket(listeningSocket);
+			WSACleanup();
+			return;
+		}
 
 		// Lancer le thread 
 	}
 
-
-
-
-	void NetworkLib::UpdateListenServer(Connection s)
+	void NetworkLib::UpdateListen(Connection s)
 	{
 
 		fd_set current_sockets;
