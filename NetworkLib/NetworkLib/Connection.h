@@ -7,8 +7,6 @@ namespace uqac::networkLib
 	{
 	
 		protected:
-			SOCKET s;
-
 			char* buf;
 	
 		public:

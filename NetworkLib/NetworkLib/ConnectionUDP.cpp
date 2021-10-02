@@ -7,6 +7,11 @@ namespace uqac::networkLib
 
 	}
 
+	ConnectionUDP::ConnectionUDP(SOCKET s)
+	{
+		this->s = s;
+	}
+
 	ConnectionUDP::~ConnectionUDP()
 	{
 		closesocket(s);

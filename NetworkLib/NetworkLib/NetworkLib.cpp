@@ -5,16 +5,31 @@
 
 //using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
+
+
 int main()
 {
 	std::cout << "Hello CMake." << std::endl;
+	//uqac::networkLib::NetworkLib A;
+	//uqac::networkLib::ConfigCallback callbacks;
+	//A.Initialize();
+
+	// TEST SERVER
+	/* 
+	// Listen en AF_INET6 ne fonctionne pas
+	if(A.Listen("127.0.0.1", 8888, 0, callbacks) < 0)
+		std::cout << "Oups";
+	*/
+
+	//A.Close();
+
 	return 0;
 }
 
 
 namespace uqac::networkLib
 {
-
+	
 	int NetworkLib::Initialize()
 	{
 		// Initialize winstock
@@ -71,6 +86,8 @@ namespace uqac::networkLib
 		}
 
 		// Lancer le thread
+		//threadRunning = true;
+		//threadNetwork = std::thread(&UpdateListen, listeningSocket, NULL, callbacks);
 
 		// Return la connection
 		if (protocol == 0) {
@@ -93,21 +110,27 @@ namespace uqac::networkLib
 		//Creation du socket
 		SOCKET listeningSocket = INVALID_SOCKET;
 		listeningSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
-		if (listeningSocket == INVALID_SOCKET) {
+		if (listeningSocket == INVALID_SOCKET) 
+		{
+			std::cout << "Can't initialize listening socket.";
 			WSACleanup();
 			return -1;
 		}
 
 		//Setup TCP Listening
 		int iResult = bind(listeningSocket, (sockaddr*)&info, sizeof(info));
-		if (iResult == SOCKET_ERROR) {
+		if (iResult == SOCKET_ERROR) 
+		{
+			std::cout << "Can't bind listening socket.";
 			closesocket(listeningSocket);
 			WSACleanup();
 			return -1;
 		}
 		
 		//Listening
-		if (listen(listeningSocket, 255) == SOCKET_ERROR) {
+		if (listen(listeningSocket, 255) == SOCKET_ERROR) 
+		{
+			std::cout << "Can't listen.";
 			closesocket(listeningSocket);
 			WSACleanup();
 			return -1;
@@ -115,7 +138,9 @@ namespace uqac::networkLib
 
 		// Lancer le thread 
 		threadRunning = true;
-		threadNetwork = std::thread(&UpdateListen, listeningSocket, NULL, callbacks);
+		/*std::function<void(SOCKET, SOCKET, ConfigCallback)> hey = UpdateListen;
+			std::bind(&UpdateListen, listeningSocket, listeningSocket, callbacks);*/
+		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, NULL, callbacks);
 		return 1;
 
 	}
