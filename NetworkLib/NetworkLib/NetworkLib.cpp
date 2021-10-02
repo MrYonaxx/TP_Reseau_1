@@ -10,9 +10,9 @@
 int main()
 {
 	std::cout << "Hello CMake." << std::endl;
-	//uqac::networkLib::NetworkLib A;
-	//uqac::networkLib::ConfigCallback callbacks;
-	//A.Initialize();
+	uqac::networkLib::NetworkLib A;
+	uqac::networkLib::ConfigCallback callbacks;
+	A.Initialize();
 
 	// TEST SERVER
 	/* 
@@ -21,7 +21,7 @@ int main()
 		std::cout << "Oups";
 	*/
 
-	//A.Close();
+	A.Close();
 
 	return 0;
 }
@@ -85,15 +85,19 @@ namespace uqac::networkLib
 			return nullptr;
 		}
 
-		// Lancer le thread
-		//threadRunning = true;
-		//threadNetwork = std::thread(&UpdateListen, listeningSocket, NULL, callbacks);
+		// Créer la connection
+		std::shared_ptr<Connection> connection;
+		if (protocol == 0)
+			connection = std::make_shared<ConnectionTCP>(connectSocket);
+		else
+			connection = std::make_shared<ConnectionUDP>(connectSocket);
+
+		// Lance le thread
+		threadRunning = true;
+		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, connection, callbacks);
 
 		// Return la connection
-		if (protocol == 0) {
-			return std::make_shared<ConnectionTCP>(connectSocket);
-		}
-		return std::make_shared<ConnectionUDP>(connectSocket);
+		return connection;
 		
 	}
 
@@ -127,7 +131,7 @@ namespace uqac::networkLib
 			return -1;
 		}
 		
-		//Listening
+		//Listening (only for TCP)
 		if (listen(listeningSocket, 255) == SOCKET_ERROR) 
 		{
 			std::cout << "Can't listen.";
@@ -138,14 +142,12 @@ namespace uqac::networkLib
 
 		// Lancer le thread 
 		threadRunning = true;
-		/*std::function<void(SOCKET, SOCKET, ConfigCallback)> hey = UpdateListen;
-			std::bind(&UpdateListen, listeningSocket, listeningSocket, callbacks);*/
-		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, NULL, callbacks);
+		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, callbacks);
 		return 1;
 
 	}
 
-	void NetworkLib::UpdateListen(SOCKET listeningSocket, SOCKET receiveSocket, ConfigCallback callbacks)
+	void NetworkLib::UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks)
 	{
 
 		std::vector<std::shared_ptr<Connection>> listReceive;
@@ -155,8 +157,18 @@ namespace uqac::networkLib
 
 		// initialise
 		FD_ZERO(&current_sockets);
+
 		// Ajoute listening aux sockets
-		FD_SET(listeningSocket, &current_sockets);
+		if (listeningSocket != NULL) 
+		{
+			FD_SET(listeningSocket, &current_sockets);
+		}
+		// Ajoute le default receive à la liste
+		if (defaultReceive != nullptr) 
+		{
+			listReceive.push_back(defaultReceive);
+			FD_SET(defaultReceive->s, &current_sockets);
+		}
 
 		while (threadRunning)
 		{
