@@ -37,7 +37,7 @@ namespace uqac::networkLib
 		WSACleanup();
 	}
 
-	void NetworkLib::Connect(string adressIP, int port, int protocol)
+	std::shared_ptr<Connection> NetworkLib::Connect(string adressIP, int port, int protocol)
 	{
 		connectSocket = INVALID_SOCKET;
 
@@ -68,6 +68,12 @@ namespace uqac::networkLib
 		}
 
 		// Lancer le thread
+
+		// Return la connection
+		if (protocol == 0) {
+			return make_shared<ConnectionTCP>(connectSocket);
+		}
+		return make_shared<ConnectionUDP>(connectSocket);
 		
 	}
 
@@ -105,23 +111,44 @@ namespace uqac::networkLib
 		// Lancer le thread 
 	}
 
-	void NetworkLib::ListenThread(SOCKET s)
+	void NetworkLib::UpdateListen(Connection s)
 	{
-		fd_set readingSet;
-		FD_ZERO(&readingSet);
-		fd_set writingSet;
-		FD_ZERO(&writingSet);
 
-		u_long nonBlocking = 1;
-		ioctlsocket(s, FIONBIO, &nonBlocking);
-		while (true) {
-			FD_SET(s, &readingSet);
+		fd_set current_sockets;
+		fd_set ready_sockets; // sert de copie de current socket
 
-			int ret = select(0, &readingSet, &writingSet, nullptr, nullptr);
+		// initiliase
+		FD_ZERO(&current_sockets);
+		// Ajoute listening aux sockets
+		FD_SET(listeningSocket, &current_sockets);
 
-			if (ret > 0) {
-				if (FD_ISSET(s, &readingSet)) {
-					///JE SAIS  PAS
+		while (true)
+		{
+			ready_sockets = current_sockets;
+			int socketCount = select(0, &ready_sockets, nullptr, nullptr, nullptr);
+			if (socketCount < 0)
+			{
+				// error
+				return;
+			}
+
+			// On parcourt les sockets ready
+			for (int i = 0; i < socketCount; i++)
+			{
+				// Nouvelle connection
+				if (FD_ISSET(listeningSocket, &ready_sockets))
+				{
+					// Le terminal fait ses trucs
+
+					// On ajoute la nouvelle connection au set
+					/*SOCKET client = accept(listeningTCP, nullptr, nullptr);
+					FD_SET(client, &current_sockets);
+					*/
+				}
+				else
+				{
+					// Connection fait ses trucs
+					//recv();
 				}
 			}
 		}

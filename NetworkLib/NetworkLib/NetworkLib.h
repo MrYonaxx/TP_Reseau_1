@@ -27,12 +27,12 @@ namespace uqac::networkLib
 		int Initialize();
 		void Close();
 
-		void Connect(std::string adressIP, int port, int protocol = 0);
+		std::shared_ptr<Connection> Connect(std::string adressIP, int port, int protocol = 0);
 		void Listen(string adressIP, int port, int protocol = 0);
 
 
 		// Pour les thread 
-		void ListenThread(SOCKET s);
+		void UpdateListen(Connection s);
 	};
 
 	/*struct Config {
