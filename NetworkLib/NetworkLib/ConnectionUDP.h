@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Connection.h"
+#include <stdio.h>
 #include <WinSock2.h>
 
 namespace uqac::networkLib
@@ -13,8 +14,8 @@ namespace uqac::networkLib
 		~ConnectionUDP();
 
 	public:
-		int Send() override;
-		int Receive() override;
+		int Send(int port) ;
+		int Receive(int port) ;
 	};
 }
 
