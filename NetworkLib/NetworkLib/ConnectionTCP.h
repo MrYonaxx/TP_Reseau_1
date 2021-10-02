@@ -6,7 +6,7 @@ namespace uqac::networkLib
 {
 	class ConnectionTCP : public Connection
 	{
-
+	public:
 		ConnectionTCP();
 		ConnectionTCP(SOCKET socket); // faudrait filer un pointeur
 		~ConnectionTCP();
