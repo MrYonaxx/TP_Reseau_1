@@ -10,33 +10,46 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <thread>
-#include "Connection.h"
+#include <vector>
+#include <functional>
+#include "Terminal.h"
 #include "ConnectionTCP.h"
 #include "ConnectionUDP.h"
 
 namespace uqac::networkLib
 {
+	struct ConfigCallback
+	{
+		std::function<void(std::shared_ptr<Connection>)> OnMsgReceived;
+		std::function<void(std::shared_ptr<Connection>)> OnConnection;
+		std::function<void(std::shared_ptr<Connection>)> OnDisconnection;
+	};
+
 	class NetworkLib
 	{
 
 	private:
-		SOCKET listeningSocket;
-		SOCKET connectSocket;
+		//SOCKET listeningSocket;
+		Terminal terminal;
+
+		std::thread threadNetwork;
+		bool threadRunning;
+
+
+		
 
 	public:
 
 		int Initialize();
 		void Close();
 
-		std::shared_ptr<Connection> Connect(std::string adressIP, int port, int protocol = 0);
-		void Listen(std::string adressIP, int port, int protocol);
+		std::shared_ptr<Connection> Connect(std::string adressIP, int port, int protocol, ConfigCallback callbacks);
+		int Listen(std::string adressIP, int port, int protocol, ConfigCallback callbacks);
 
 
 		// Pour les thread 
-		void UpdateListen(Connection s);
+		void UpdateListen(SOCKET listeningSocket, SOCKET receiveSocket, ConfigCallback callbacks);
 	};
 
-	/*struct Config {
-		std::function OnConnect;
-	};*/
+
 }

@@ -12,6 +12,7 @@ namespace uqac::networkLib
 			char* buf;
 	
 		public:
+			SOCKET s;
 			virtual int Send();
 			virtual int Receive();
 	

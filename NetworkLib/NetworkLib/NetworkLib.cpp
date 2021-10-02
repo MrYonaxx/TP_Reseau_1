@@ -3,11 +3,11 @@
 
 #include "NetworkLib.h"
 
-using namespace std;
+//using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	std::cout << "Hello CMake." << std::endl;
 	return 0;
 }
 
@@ -30,14 +30,19 @@ namespace uqac::networkLib
 		return 1;
 	}
 
+	// Arrête WSA et le thread si ce dernier est actif
 	void NetworkLib::Close()
 	{
+		threadRunning = false;
+		if(threadNetwork.joinable())
+			threadNetwork.join();
 		WSACleanup();
 	}
 
-	std::shared_ptr<Connection> NetworkLib::Connect(string adressIP, int port, int protocol)
+
+	std::shared_ptr<Connection> NetworkLib::Connect(std::string adressIP, int port, int protocol, ConfigCallback callbacks)
 	{
-		connectSocket = INVALID_SOCKET;
+		SOCKET connectSocket = INVALID_SOCKET;
 
 		// Setup adresse serveur
 		sockaddr_in info;
@@ -69,13 +74,15 @@ namespace uqac::networkLib
 
 		// Return la connection
 		if (protocol == 0) {
-			return make_shared<ConnectionTCP>(connectSocket);
+			return std::make_shared<ConnectionTCP>(connectSocket);
 		}
-		return make_shared<ConnectionUDP>(connectSocket);
+		return std::make_shared<ConnectionUDP>(connectSocket);
 		
 	}
 
-	void NetworkLib::Listen(string adressIP, int port, int protocol = 0)
+
+	// Créer un listening socket et lance le thread si bien initialisé
+	int NetworkLib::Listen(std::string adressIP, int port, int protocol, ConfigCallback callbacks)
 	{
 		// Setup adresse serveur
 		sockaddr_in info;
@@ -84,11 +91,11 @@ namespace uqac::networkLib
 		inet_pton(AF_INET6, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip
 
 		//Creation du socket
-		listeningSocket = INVALID_SOCKET;
+		SOCKET listeningSocket = INVALID_SOCKET;
 		listeningSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 		if (listeningSocket == INVALID_SOCKET) {
 			WSACleanup();
-			return;
+			return -1;
 		}
 
 		//Setup TCP Listening
@@ -96,59 +103,77 @@ namespace uqac::networkLib
 		if (iResult == SOCKET_ERROR) {
 			closesocket(listeningSocket);
 			WSACleanup();
-			return;
+			return -1;
 		}
 		
 		//Listening
 		if (listen(listeningSocket, 255) == SOCKET_ERROR) {
 			closesocket(listeningSocket);
 			WSACleanup();
-			return;
+			return -1;
 		}
 
 		// Lancer le thread 
+		threadRunning = true;
+		threadNetwork = std::thread(&UpdateListen, listeningSocket, NULL, callbacks);
+		return 1;
+
 	}
 
-	void NetworkLib::UpdateListen(Connection s)
+	void NetworkLib::UpdateListen(SOCKET listeningSocket, SOCKET receiveSocket, ConfigCallback callbacks)
 	{
 
-		fd_set current_sockets;
-		fd_set ready_sockets; // sert de copie de current socket
+		std::vector<std::shared_ptr<Connection>> listReceive;
 
-		// initiliase
+		fd_set current_sockets;
+		fd_set reading_sockets; // sert de copie de current socket
+
+		// initialise
 		FD_ZERO(&current_sockets);
 		// Ajoute listening aux sockets
 		FD_SET(listeningSocket, &current_sockets);
 
-		while (true)
+		while (threadRunning)
 		{
-			ready_sockets = current_sockets;
-			int socketCount = select(0, &ready_sockets, nullptr, nullptr, nullptr);
+			reading_sockets = current_sockets;
+			int socketCount = select(0, &reading_sockets, nullptr, nullptr, nullptr);
 			if (socketCount < 0)
 			{
 				// error
 				return;
 			}
 
-			// On parcourt les sockets ready
-			for (int i = 0; i < socketCount; i++)
+			// On check si on a une connection
+			if (FD_ISSET(listeningSocket, &reading_sockets))
 			{
-				// Nouvelle connection
-				if (FD_ISSET(listeningSocket, &ready_sockets))
-				{
-					// Le terminal fait ses trucs
+				// Le terminal fait ses trucs
+				std::shared_ptr<Connection> newConnection = terminal.Accept(listeningSocket);
+				// On ajoute la nouvelle connection au set
+				FD_SET(newConnection->s, &current_sockets);
+				listReceive.push_back(newConnection);
+				callbacks.OnConnection(newConnection);
+			}
 
-					// On ajoute la nouvelle connection au set
-					/*SOCKET client = accept(listeningTCP, nullptr, nullptr);
-					FD_SET(client, &current_sockets);
-					*/
-				}
-				else
+			// On parcourt la liste de connection
+			for (size_t i = listReceive.size()-1; i >= 0; i--)
+			{
+				if (FD_ISSET(listReceive[i]->s, &reading_sockets))
 				{
-					// Connection fait ses trucs
-					//recv();
+					if (listReceive[i]->Receive() < 0)
+					{
+						// Deconnexion
+						FD_CLR(listReceive[i]->s, &current_sockets);
+						callbacks.OnDisconnection(listReceive[i]);
+						listReceive.erase((listReceive.begin() + i));
+					}
+					else 
+					{
+						callbacks.OnMsgReceived(listReceive[i]);
+					}
 				}
 			}
+
 		}
+
 	}
 }
