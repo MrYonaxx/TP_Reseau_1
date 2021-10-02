@@ -8,7 +8,7 @@ namespace uqac::networkLib
 	
 		protected:
 			SOCKET s;
-			char* sendbuf;
+			char* buf;
 	
 		public:
 			virtual int Send();

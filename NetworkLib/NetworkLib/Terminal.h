@@ -11,7 +11,6 @@ namespace uqac::networkLib
 	{
 
 		public:
-			ConnectionTCP Accept(SOCKET s);
-
+			std::shared_ptr<Connection> Accept(SOCKET s);
 	};
 }

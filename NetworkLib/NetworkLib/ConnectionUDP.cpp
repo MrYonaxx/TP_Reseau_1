@@ -12,6 +12,11 @@ namespace uqac::networkLib
 		closesocket(s);
 	}
 
+	ConnectionUDP::ConnectionUDP(SOCKET s)
+	{
+
+	}
+
 	int ConnectionUDP::Send()
 	{
 		return 0;

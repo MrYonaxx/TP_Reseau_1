@@ -3,15 +3,13 @@
 
 #include "NetworkLib.h"
 
-#include <thread>
-
 using namespace std;
 
-/*int main()
+int main()
 {
 	cout << "Hello CMake." << endl;
 	return 0;
-}*/
+}
 
 
 namespace uqac::networkLib
@@ -51,20 +49,20 @@ namespace uqac::networkLib
 		connectSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 		if (connectSocket == INVALID_SOCKET) {
 			WSACleanup();
-			return;
+			return nullptr;
 		}
 
 		//Connexion au serveur
 		int iResult = connect(connectSocket, (sockaddr*)&info, sizeof(info));
 		if (iResult == SOCKET_ERROR) {
 			closesocket(connectSocket);
-			connectSocket == INVALID_SOCKET;
+			connectSocket = INVALID_SOCKET;
 		}
 		//Maybe try to reconnect here  ? :)
 
 		if (iResult == INVALID_SOCKET) {
 			WSACleanup();
-			return;
+			return nullptr;
 		}
 
 		// Lancer le thread
