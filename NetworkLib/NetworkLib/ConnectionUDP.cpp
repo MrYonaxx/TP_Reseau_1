@@ -1,6 +1,6 @@
 #include "ConnectionUDP.h"
 
-namespace uqac::networkLib 
+namespace uqac::networkLib
 {
 	ConnectionUDP::ConnectionUDP()
 	{
@@ -12,7 +12,7 @@ namespace uqac::networkLib
 		closesocket(s);
 	}
 
-	
+
 
 	int ConnectionUDP::Send(int port)
 	{
@@ -24,12 +24,12 @@ namespace uqac::networkLib
 		info.sin_port = htons(port);
 		info.sin_addr.S_un.S_addr = INADDR_ANY;
 
-        //send the message
-        if (sendto(s, buf, strlen(buf), 0, (struct sockaddr*)&info, slen) == SOCKET_ERROR)
-        {
-            printf("sendto() failed with error code : %d", WSAGetLastError());
-            exit(EXIT_FAILURE);
-        }
+		//send the message
+		if (sendto(s, buf, strlen(buf), 0, (struct sockaddr*)&info, slen) == SOCKET_ERROR)
+		{
+			printf("sendto() failed with error code : %d", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
 
 		free(buf);
 
@@ -57,4 +57,5 @@ namespace uqac::networkLib
 		return 0;
 	}
 
-    
+
+}
