@@ -5,7 +5,10 @@
 
 //using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
-
+void Test(std::shared_ptr<uqac::networkLib::Connection> a)
+{
+	std::cout << "Test réussi." << std::endl;
+}
 
 int main()
 {
@@ -13,13 +16,13 @@ int main()
 	uqac::networkLib::NetworkLib A;
 	uqac::networkLib::ConfigCallback callbacks;
 	A.Initialize();
-
+	//callbacks.OnConnection = 
 	// TEST SERVER
-	/* 
+	
 	// Listen en AF_INET6 ne fonctionne pas
 	if(A.Listen("127.0.0.1", 8888, 0, callbacks) < 0)
 		std::cout << "Oups";
-	*/
+	
 
 	A.Close();
 
@@ -98,7 +101,7 @@ namespace uqac::networkLib
 
 		// Return la connection
 		return connection;
-		
+
 	}
 
 
@@ -169,7 +172,7 @@ namespace uqac::networkLib
 			listReceive.push_back(defaultReceive);
 			FD_SET(defaultReceive->s, &current_sockets);
 		}
-
+		callbacks.OnConnection(nullptr);
 		while (threadRunning)
 		{
 			reading_sockets = current_sockets;
