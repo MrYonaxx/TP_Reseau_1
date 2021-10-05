@@ -1,5 +1,5 @@
 #include "ConnectionTCP.h"
-#include <iostream>
+
 
 namespace uqac::networkLib
 {
@@ -20,9 +20,10 @@ namespace uqac::networkLib
 	}
 
 
-	int ConnectionTCP::Send()
+	int ConnectionTCP::Send(std::string message)
 	{
-		int iResult = send(s, buf, (int)strlen(buf), 0);
+		//buf = (char*) message;
+		int iResult = send(s, message.c_str(), (int)strlen(message.c_str()), 0); // à opti
 		if (iResult == SOCKET_ERROR) {
 			std::cerr << "send failed : ", WSAGetLastError();
 			closesocket(s);

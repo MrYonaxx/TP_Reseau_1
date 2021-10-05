@@ -1,5 +1,6 @@
 #pragma once
 #include <WinSock2.h>
+#include <iostream>
 
 namespace uqac::networkLib
 {
@@ -12,7 +13,7 @@ namespace uqac::networkLib
 	
 		public:
 			SOCKET s;
-			virtual int Send();
+			virtual int Send(std::string message);
 			virtual int Receive();
 	
 	};

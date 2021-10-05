@@ -12,7 +12,7 @@ namespace uqac::networkLib
 		~ConnectionTCP();
 
 	public:
-		int Send() override;
+		int Send(std::string message) override;
 		int Receive() override;
 
 	};
