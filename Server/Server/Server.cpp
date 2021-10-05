@@ -6,6 +6,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include "../../NetworkLib/NetworkLib/NetworkLib.h"
 
 using namespace std;
 using namespace uqac::networkLib;
@@ -23,7 +24,7 @@ void AddConnection(shared_ptr<Connection> newConnection)
 // s'abonne à OnDisconnection
 void RemoveConnection(shared_ptr<Connection> newConnection)
 {
-	listConnection.remove(newConnection);
+	//listConnection.remove(newConnection);
 }
 
 // s'abonne à OnMsgReceived
@@ -48,11 +49,15 @@ int main()
 
 	callbacks.OnConnection = AddConnection;
 	callbacks.OnDisconnection = RemoveConnection;
-	callbacks.OnMessageReceived = SendMessageAll;
+	callbacks.OnMsgReceived = SendMessageAll;
 
 	if (A.Listen("127.0.0.1", 8888, 0, callbacks) < 0)
 		std::cout << "Oups";
 
+	while (true)
+	{
+
+	}
 	
 	A.Close();
 

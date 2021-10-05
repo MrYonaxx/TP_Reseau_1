@@ -33,8 +33,12 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	cout << "Username ?\n";
 	cin >> username;
 
+	// Callbacks
+	ConfigCallback callbacks;
+
+
 	//Connection au serveur
-	std::shared_ptr<Connection> connection = net->Connect(argv[1], (int)argv[3], (int)argv[5]);
+	std::shared_ptr<Connection> connection = net->Connect(argv[1], (int)argv[3], (int)argv[5], callbacks);
 
 	//Chat
 	cout << "/exit pour quitter\n";
@@ -43,6 +47,7 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 		if (message == "/exit")
 			break;
 		message = "[", username, "]:" + message;
+		connection->Send();
 	}
 	return 1;
 }
