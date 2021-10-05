@@ -2,7 +2,7 @@
 
 namespace uqac::networkLib 
 {
-    int Connection::Send()
+    int Connection::Send(std::string message)
     {
 
         return 0;

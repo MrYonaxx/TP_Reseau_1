@@ -14,8 +14,8 @@ namespace uqac::networkLib
 		~ConnectionUDP();
 
 	public:
-		int Send(int port) ;
-		int Receive(int port) ;
+		int Send(int port);
+		int Receive(int port);
 	};
 }
 
