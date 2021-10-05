@@ -3,7 +3,7 @@
 #pragma once
 
 #include <iostream>
-#include <NetworkLib.h>
+#include "../../NetworkLib/NetworkLib/NetworkLib.h"
 
 
 using namespace std;
