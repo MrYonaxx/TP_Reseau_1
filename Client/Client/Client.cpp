@@ -3,12 +3,17 @@
 #pragma once
 
 #include <iostream>
-#include <NetworkLib.h>
-
+//#include <NetworkLib.h>
+#include "NetworkLib/NetworkLib.h"
+//#include "Connection.h"
 
 using namespace std;
 using namespace uqac::networkLib;
 
+void MessageReceived(std::shared_ptr<Connection> newMsg) 
+{
+	std::cout << newMsg->msg;
+}
 
 int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]
 {
@@ -16,10 +21,10 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	string message;
 
 	//Validate parameters
-	if (argc != 6) {
+	/*if (argc != 6) {
 		cout << "usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]\n";
 		return -1;
-	}
+	}*/
 
 	//Init Network Lib
 	NetworkLib* net = new NetworkLib();
@@ -35,10 +40,15 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 
 	// Callbacks
 	ConfigCallback callbacks;
+	callbacks.OnMsgReceived = MessageReceived;
 
 
 	//Connection au serveur
-	std::shared_ptr<Connection> connection = net->Connect(argv[1], (int)argv[3], (int)argv[5], callbacks);
+	std::shared_ptr<Connection> connection = net->Connect("127.0.0.1", 8888, 0, callbacks);
+	if (connection == nullptr)
+	{
+		return -1;
+	}
 
 	//Chat
 	cout << "/exit pour quitter\n";
@@ -47,7 +57,7 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 		if (message == "/exit")
 			break;
 		message = "[", username, "]:" + message;
-		connection->Send();
+		connection->Send(message);
 	}
 	return 1;
 }

@@ -6,7 +6,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "../../NetworkLib/NetworkLib/NetworkLib.h"
+#include "NetworkLib/NetworkLib.h"
 
 using namespace std;
 using namespace uqac::networkLib;
@@ -18,6 +18,7 @@ vector<shared_ptr<Connection>> listConnection;
 // s'abonne à OnConnection
 void AddConnection(shared_ptr<Connection> newConnection) 
 {
+	std::cout << "Connection ajouté";
 	listConnection.push_back(newConnection);
 }
 
@@ -30,11 +31,15 @@ void RemoveConnection(shared_ptr<Connection> newConnection)
 // s'abonne à OnMsgReceived
 void SendMessageAll(shared_ptr<Connection> message) 
 {
-	for (size_t i = 0; i < listConnection.size(); i++)
+	if (message == nullptr)
+		std::cout << "Aöe";
+	std::string copy = message->msg;
+	std::cout << "%s" << copy;
+	for (int i = 0; i < listConnection.size(); ++i)
 	{
 		if (listConnection[i] != message) 
 		{
-			listConnection[i]->Send();
+			listConnection[i]->Send("Hello");
 		}
 	}
 }

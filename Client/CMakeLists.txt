@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 3.8)
 
 set(CMAKE_CXX_STANDARD 17)
 include_directories(../NetworkLib/NetworkLib)
-link_libraries(Lib/NetworkLibs)
+# link_libraries(Lib/NetworkLibs)
 
 option(BUILD_EXAMPLES "build examples" ON)
 option(BUILD_TESTS "build tests" ON)
@@ -14,3 +14,4 @@ project ("Client")
 
 # Include sub-projects.
 add_subdirectory ("Client")
+add_subdirectory ("Client/NetworkLib")
