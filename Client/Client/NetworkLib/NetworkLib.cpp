@@ -69,31 +69,36 @@ namespace uqac::networkLib
 		inet_pton(AF_INET, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip	
 
 		//Creation de la socket
-		connectSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		connectSocket = socket(info.sin_family, protocol == 0 ? SOCK_STREAM : SOCK_DGRAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 		if (connectSocket == INVALID_SOCKET) {
 			WSACleanup();
 			return nullptr;
 		}
 
-		//Connexion au serveur
-		int iResult = connect(connectSocket, (sockaddr*)&info, sizeof(info));
-		if (iResult == SOCKET_ERROR) {
-			closesocket(connectSocket);
-			connectSocket = INVALID_SOCKET;
-		}
-		//Maybe try to reconnect here  ? :)
+		//if (protocol == 0) 
+		//{
+			//Connexion au serveur
+			int iResult = connect(connectSocket, (sockaddr*)&info, sizeof(info));
+			if (iResult == SOCKET_ERROR) {
+				closesocket(connectSocket);
+				connectSocket = INVALID_SOCKET;
+			}
 
-		if (iResult == INVALID_SOCKET) {
-			WSACleanup();
-			return nullptr;
-		}
+			//Maybe try to reconnect here  ? :)
+			if (iResult == INVALID_SOCKET) {
+				WSACleanup();
+				return nullptr;
+			}
+		//}
+
+
 
 		// Créer la connection
 		std::shared_ptr<Connection> connection;
 		if (protocol == 0)
 			connection = std::make_shared<ConnectionTCP>(connectSocket);
 		else
-			connection = std::make_shared<ConnectionUDP>(connectSocket);
+			connection = std::make_shared<ConnectionUDP>(connectSocket, info);
 
 		// Lance le thread
 		threadRunning = true;
@@ -192,6 +197,7 @@ namespace uqac::networkLib
 				listReceive.push_back(newConnection);
 				callbacks.OnConnection(newConnection);
 			}
+
 
 			// On parcourt la liste de connection
 			for (int i = listReceive.size()-1; i >= 0; --i)

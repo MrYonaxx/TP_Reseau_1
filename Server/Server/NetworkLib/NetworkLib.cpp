@@ -93,7 +93,7 @@ namespace uqac::networkLib
 		if (protocol == 0)
 			connection = std::make_shared<ConnectionTCP>(connectSocket);
 		else
-			connection = std::make_shared<ConnectionUDP>(connectSocket);
+			connection = std::make_shared<ConnectionUDP>(connectSocket, port);
 
 		// Lance le thread
 		threadRunning = true;
@@ -116,7 +116,7 @@ namespace uqac::networkLib
 
 		//Creation du socket
 		SOCKET listeningSocket = INVALID_SOCKET;
-		listeningSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		listeningSocket = socket(info.sin_family, protocol == 0 ? SOCK_STREAM : SOCK_DGRAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 		if (listeningSocket == INVALID_SOCKET) 
 		{
 			std::cout << "Can't initialize listening socket.";
@@ -124,23 +124,26 @@ namespace uqac::networkLib
 			return -1;
 		}
 
-		//Setup TCP Listening
+		//Setup bind
 		int iResult = bind(listeningSocket, (sockaddr*)&info, sizeof(info));
-		if (iResult == SOCKET_ERROR) 
+		if (iResult == SOCKET_ERROR)
 		{
 			std::cout << "Can't bind listening socket.";
 			closesocket(listeningSocket);
 			WSACleanup();
 			return -1;
 		}
-		
-		//Listening (only for TCP)
-		if (listen(listeningSocket, 255) == SOCKET_ERROR) 
+
+		if (protocol == 0)
 		{
-			std::cout << "Can't listen.";
-			closesocket(listeningSocket);
-			WSACleanup();
-			return -1;
+			//Listening (only for TCP)
+			if (listen(listeningSocket, 255) == SOCKET_ERROR)
+			{
+				std::cout << "Can't listen.";
+				closesocket(listeningSocket);
+				WSACleanup();
+				return -1;
+			}
 		}
 
 		// Lancer le thread 
@@ -194,6 +197,7 @@ namespace uqac::networkLib
 				std::cout << "Nouvelle connection\n";
 				callbacks.OnConnection(newConnection);
 			}
+
 
 			// On parcourt la liste de connection
 			for (int i = listReceive.size()-1; i >= 0; --i)

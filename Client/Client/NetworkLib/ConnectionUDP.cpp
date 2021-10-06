@@ -7,9 +7,18 @@ namespace uqac::networkLib
 
 	}
 
-	ConnectionUDP::ConnectionUDP(SOCKET s)
+	ConnectionUDP::ConnectionUDP(SOCKET s, sockaddr_in info)
 	{
 		this->s = s;
+		this->info = info,
+
+		//sockaddr_in info;
+		slen = sizeof(info);
+
+		/*memset((char*)&info, 0, sizeof(info));
+		info.sin_family = AF_INET;
+		info.sin_port = htons(port);
+		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
 	}
 
 	ConnectionUDP::~ConnectionUDP()
@@ -19,15 +28,15 @@ namespace uqac::networkLib
 
 
 
-	int ConnectionUDP::Send(int port)
+	int ConnectionUDP::Send(std::string message)
 	{
-		sockaddr_in info;
+		/*sockaddr_in info;
 		int slen = sizeof(info);
 
 		memset((char*)&info, 0, sizeof(info));
 		info.sin_family = AF_INET;
 		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;
+		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
 
 		//send the message
 		if (sendto(s, buf, strlen(buf), 0, (struct sockaddr*)&info, slen) == SOCKET_ERROR)
@@ -36,20 +45,20 @@ namespace uqac::networkLib
 			exit(EXIT_FAILURE);
 		}
 
-		free(buf);
+		//free(buf);
 
 		return 0;
 	}
 
-	int ConnectionUDP::Receive(int port)
+	int ConnectionUDP::Receive()
 	{
-		sockaddr_in info;
+		/**sockaddr_in info;
 		int slen = sizeof(info);
 
 		memset((char*)&info, 0, sizeof(info));
 		info.sin_family = AF_INET;
 		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;
+		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
 
 		if (recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen) == SOCKET_ERROR)
 		{
@@ -58,7 +67,6 @@ namespace uqac::networkLib
 		}
 
 		free(buf);
-
 		return 0;
 	}
 

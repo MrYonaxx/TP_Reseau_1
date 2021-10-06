@@ -14,6 +14,14 @@ void MessageReceived(std::shared_ptr<Connection> newMsg)
 {
 	std::cout << newMsg->msg;
 }
+void ConnectionLost(std::shared_ptr<Connection> newMsg)
+{
+	std::cout << "Connection lost";
+
+	// Handle things
+	//
+
+}
 
 int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]
 {
@@ -41,12 +49,13 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	// Callbacks
 	ConfigCallback callbacks;
 	callbacks.OnMsgReceived = MessageReceived;
-
+	callbacks.OnDisconnection = ConnectionLost;
 
 	//Connection au serveur
-	std::shared_ptr<Connection> connection = net->Connect("127.0.0.1", 8888, 0, callbacks);
+	std::shared_ptr<Connection> connection = net->Connect("127.0.0.1", 8888, 1, callbacks);
 	if (connection == nullptr)
 	{
+		cout << "Argh\n";
 		return -1;
 	}
 

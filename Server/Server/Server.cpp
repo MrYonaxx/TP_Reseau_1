@@ -44,8 +44,16 @@ void SendMessageAll(shared_ptr<Connection> message)
 	}
 }
 
-int main()
+int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]
 {
+	string username;
+	string message;
+
+	//Validate parameters
+	/*if (argc != 6) {
+		cout << "usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]\n";
+		return -1;
+	}*/
 	cout << "Hello CMake." << endl;
 
 	uqac::networkLib::NetworkLib A;
@@ -56,7 +64,7 @@ int main()
 	callbacks.OnDisconnection = RemoveConnection;
 	callbacks.OnMsgReceived = SendMessageAll;
 
-	if (A.Listen("127.0.0.1", 8888, 0, callbacks) < 0)
+	if (A.Listen("127.0.0.1", 8888, 1, callbacks) < 0)
 		std::cout << "Oups";
 
 	while (true)
