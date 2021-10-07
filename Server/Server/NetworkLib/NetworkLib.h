@@ -48,7 +48,7 @@ namespace uqac::networkLib
 
 
 		// Pour les thread 
-		void UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks);
+		void UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, int protocol, ConfigCallback callbacks);
 	};
 
 

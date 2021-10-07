@@ -64,8 +64,9 @@ namespace uqac::networkLib
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
-
-		free(buf);
+		//std::cout << "Hrm hrm hrm";
+		//free(buf);
+		//std::cout << "Hrm hrm";
 		return 0;
 	}
 

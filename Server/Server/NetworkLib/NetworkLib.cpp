@@ -97,7 +97,7 @@ namespace uqac::networkLib
 
 		// Lance le thread
 		threadRunning = true;
-		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, connection, callbacks);
+		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, connection, protocol, callbacks);
 
 		// Return la connection
 		return connection;
@@ -147,13 +147,21 @@ namespace uqac::networkLib
 		}
 
 		// Lancer le thread 
-		threadRunning = true;
-		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, callbacks);
+		if (protocol == 0) 
+		{
+			threadRunning = true;
+			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, protocol, callbacks);
+		}
+		else 
+		{
+			threadRunning = true;
+			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, std::make_shared<ConnectionUDP>(listeningSocket, port), protocol, callbacks);
+		}
 		return 1;
 
 	}
 
-	void NetworkLib::UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks)
+	void NetworkLib::UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, int protocol, ConfigCallback callbacks)
 	{
 
 		std::vector<std::shared_ptr<Connection>> listReceive;
@@ -178,6 +186,7 @@ namespace uqac::networkLib
 
 		while (threadRunning)
 		{
+			// en udp on doit FD_SET le listening socket car ça se reset à chaque fois
 			reading_sockets = current_sockets;
 			int socketCount = select(0, &reading_sockets, nullptr, nullptr, nullptr);
 			if (socketCount < 0)
@@ -186,16 +195,27 @@ namespace uqac::networkLib
 				return;
 			}
 
-			// On check si on a une connection
-			if (FD_ISSET(listeningSocket, &reading_sockets))
+
+			if (protocol == 0) 
 			{
-				// Le terminal fait ses trucs
-				std::shared_ptr<Connection> newConnection = terminal.Accept(listeningSocket);
-				// On ajoute la nouvelle connection au set
-				FD_SET(newConnection->s, &current_sockets);
-				listReceive.push_back(newConnection);
-				std::cout << "Nouvelle connection\n";
-				callbacks.OnConnection(newConnection);
+				// On check si on a une connection
+				if (FD_ISSET(listeningSocket, &reading_sockets))
+				{
+					// Le terminal fait ses trucs
+					std::shared_ptr<Connection> newConnection = terminal.Accept(listeningSocket);
+					// On ajoute la nouvelle connection au set
+					FD_SET(newConnection->s, &current_sockets);
+					listReceive.push_back(newConnection);
+					std::cout << "Nouvelle connection\n";
+					callbacks.OnConnection(newConnection);
+				}
+			}
+			else 
+			{
+				if (FD_ISSET(listeningSocket, &reading_sockets))
+				{
+					std::cout << "Salut je suis UDP\n";
+				}
 			}
 
 

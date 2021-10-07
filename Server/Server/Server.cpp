@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include "NetworkLib/NetworkLib.h"
+#include "windows.h" 
 
 using namespace std;
 using namespace uqac::networkLib;
@@ -33,13 +34,15 @@ void SendMessageAll(shared_ptr<Connection> message)
 {
 	if (message == nullptr)
 		std::cout << "Aöe";
-	std::string copy = message->msg;
-	std::cout << "%s" << copy;
+
+	std::cout << '\n';
+	std::cout << message->msg;
+
 	for (int i = 0; i < listConnection.size(); ++i)
 	{
 		if (listConnection[i] != message) 
 		{
-			listConnection[i]->Send("Hello");
+			listConnection[i]->Send(message->msg);
 		}
 	}
 }
@@ -49,11 +52,23 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	string username;
 	string message;
 
+	// Default parameter
+	int protocol = 0;
+	int port = 8888;
+	string ip = "127.0.0.1";
+
 	//Validate parameters
-	/*if (argc != 6) {
+	if (argc == 6) 
+	{
+		protocol = (int)argv[5];
+		port = (int)argv[3];
+		ip = argv[5];
+	}
+	else if (argc > 1) 
+	{
 		cout << "usage: -ip [IP] -port [PORT] -protocole [0=TCP;1=UDP]\n";
 		return -1;
-	}*/
+	}
 	cout << "Hello CMake." << endl;
 
 	uqac::networkLib::NetworkLib A;
@@ -64,12 +79,12 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	callbacks.OnDisconnection = RemoveConnection;
 	callbacks.OnMsgReceived = SendMessageAll;
 
-	if (A.Listen("127.0.0.1", 8888, 1, callbacks) < 0)
+	if (A.Listen(ip, port, protocol, callbacks) < 0)
 		std::cout << "Oups";
 
 	while (true)
 	{
-
+		Sleep(1);
 	}
 	
 	A.Close();
