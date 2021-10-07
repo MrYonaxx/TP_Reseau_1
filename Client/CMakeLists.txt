@@ -7,9 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(../NetworkLib/NetworkLib)
 
 add_library(NetworkLib STATIC IMPORTED)
-set_property(TARGET NetworkLib PROPERTY IMPORTED_IMPLIB Lib/NetworkLibs.lib)
+set_property(TARGET NetworkLib PROPERTY IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/Lib/NetworkLibs.lib)
+set_property(TARGET NetworkLib PROPERTY IMPORTED_IMPLIB ${CMAKE_HOME_DIRECTORY}/Lib/NetworkLibs.lib)
 add_executable(ClientExe Client/Client.cpp)
-link_libraries(ClientExe PRIVATE NetworkLib)
+target_link_libraries(ClientExe PRIVATE NetworkLib)
 
 option(BUILD_EXAMPLES "build examples" ON)
 option(BUILD_TESTS "build tests" ON)
