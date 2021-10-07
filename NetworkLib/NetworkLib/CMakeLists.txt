@@ -3,7 +3,9 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-# Ajoutez une source à l'exécutable de ce projet.
-add_executable (NetworkLib "NetworkLib.cpp" "NetworkLib.h" "Terminal.cpp" "Terminal.h" "Connection.cpp" "Connection.h" "ConnectionTCP.cpp" "ConnectionTCP.h" "ConnectionUDP.cpp" "ConnectionUDP.h")
+set(${PROJECT_NAME}_SRC "src/NetworkLib.cpp" "src/Terminal.cpp" "src/ConnectionUDP.cpp" "src/ConnectionTCP.cpp" "src/Connection.cpp")
+set(${PROJECT_NAME}_HEADERS "include/NetworkLib.h" "include/Terminal.h" "include/ConnectionUDP.h" "include/ConnectionTCP.h" "include/Connection.h")
 
-# TODO: Ajoutez des tests et installez des cibles si nécessaire.
+add_library(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_SRC} ${${PROJECT_NAME}_HEADERS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC include)

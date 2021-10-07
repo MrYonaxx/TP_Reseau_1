@@ -9,10 +9,4 @@ project ("NetworkLib")
 
 # Incluez les sous-projets.
 add_subdirectory ("NetworkLib")
-
-add_library(NetworkLibs STATIC
-			NetworkLib/Connection.cpp
-			NetworkLib/ConnectionTCP.cpp
-			NetworkLib/ConnectionUDP.cpp
-			NetworkLib/NetworkLib.cpp
-			NetworkLib/Terminal.cpp)
+add_subdirectory ("ClientServer")
