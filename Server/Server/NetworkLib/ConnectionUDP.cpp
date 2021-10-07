@@ -58,12 +58,14 @@ namespace uqac::networkLib
 		info.sin_family = AF_INET;
 		info.sin_port = htons(port);
 		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
-
-		if (recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen) == SOCKET_ERROR)
+		int iResult = recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen);
+		if (iResult == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
+		std::string message(buf, iResult);
+		msg = message;
 		//std::cout << "Hrm hrm hrm";
 		//free(buf);
 		//std::cout << "Hrm hrm";

@@ -10,6 +10,7 @@ namespace uqac::networkLib
 	{
 	private:
 		sockaddr_in info;
+		//sockaddr_in infoRcv;
 		int slen;
 
 	public:

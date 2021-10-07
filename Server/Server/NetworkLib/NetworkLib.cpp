@@ -97,7 +97,7 @@ namespace uqac::networkLib
 
 		// Lance le thread
 		threadRunning = true;
-		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, connection, protocol, callbacks);
+		threadNetwork = std::thread(&NetworkLib::UpdateListenTCP, this, NULL, connection, callbacks);
 
 		// Return la connection
 		return connection;
@@ -146,24 +146,25 @@ namespace uqac::networkLib
 			}
 		}
 
+		//threadRunning = true;
+		//threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, protocol, callbacks);
 		// Lancer le thread 
-		if (protocol == 0) 
+		if (protocol == 0)
 		{
 			threadRunning = true;
-			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, protocol, callbacks);
+			threadNetwork = std::thread(&NetworkLib::UpdateListenTCP, this, listeningSocket, nullptr, callbacks);
 		}
 		else 
 		{
 			threadRunning = true;
-			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, std::make_shared<ConnectionUDP>(listeningSocket, port), protocol, callbacks);
+			threadNetwork = std::thread(&NetworkLib::UpdateListenUDP, this, std::make_shared<ConnectionUDP>(listeningSocket, port), callbacks);
 		}
 		return 1;
 
 	}
 
-	void NetworkLib::UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, int protocol, ConfigCallback callbacks)
+	void NetworkLib::UpdateListenTCP(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks)
 	{
-
 		std::vector<std::shared_ptr<Connection>> listReceive;
 
 		fd_set current_sockets;
@@ -195,32 +196,20 @@ namespace uqac::networkLib
 				return;
 			}
 
-
-			if (protocol == 0) 
+			// On check si on a une connection
+			if (FD_ISSET(listeningSocket, &reading_sockets))
 			{
-				// On check si on a une connection
-				if (FD_ISSET(listeningSocket, &reading_sockets))
-				{
-					// Le terminal fait ses trucs
-					std::shared_ptr<Connection> newConnection = terminal.Accept(listeningSocket);
-					// On ajoute la nouvelle connection au set
-					FD_SET(newConnection->s, &current_sockets);
-					listReceive.push_back(newConnection);
-					std::cout << "Nouvelle connection\n";
-					callbacks.OnConnection(newConnection);
-				}
+				// Le terminal fait ses trucs
+				std::shared_ptr<Connection> newConnection = terminal.Accept(listeningSocket);
+				// On ajoute la nouvelle connection au set
+				FD_SET(newConnection->s, &current_sockets);
+				listReceive.push_back(newConnection);
+				std::cout << "Nouvelle connection\n";
+				callbacks.OnConnection(newConnection);
 			}
-			else 
-			{
-				if (FD_ISSET(listeningSocket, &reading_sockets))
-				{
-					std::cout << "Salut je suis UDP\n";
-				}
-			}
-
 
 			// On parcourt la liste de connection
-			for (int i = listReceive.size()-1; i >= 0; --i)
+			for (int i = listReceive.size() - 1; i >= 0; --i)
 			{
 				if (FD_ISSET(listReceive[i]->s, &reading_sockets))
 				{
@@ -232,7 +221,7 @@ namespace uqac::networkLib
 						listReceive.erase((listReceive.begin() + i));
 						std::cout << "Nouvelle deconnection\n";
 					}
-					else 
+					else
 					{
 						callbacks.OnMsgReceived(listReceive[i]);
 					}
@@ -241,5 +230,50 @@ namespace uqac::networkLib
 
 		}
 
+	}
+
+	void NetworkLib::UpdateListenUDP(std::shared_ptr<Connection> listenConnection, ConfigCallback callbacks)
+	{
+		std::vector<addrinfo*> list;
+
+		fd_set current_sockets;
+
+		FD_ZERO(&current_sockets);
+
+		while (threadRunning)
+		{
+			FD_SET(listenConnection->s, &current_sockets);
+			int socketCount = select(0, &current_sockets, nullptr, nullptr, nullptr);
+			if (FD_ISSET(listenConnection->s, &current_sockets))
+			{
+				if (listenConnection->Receive() < 0) 
+				{
+					// error
+					std::cout << "Echec";
+					return;
+				}
+				addrinfo* addr = listenConnection->info;
+				bool newConnection = true;
+				for (size_t i = 0; i < list.size(); i++)
+				{
+					if (list[i] == addr)
+					{
+						std::cout << "Msg Received\n";
+						callbacks.OnMsgReceived(listenConnection);
+						newConnection = false;
+					}
+				}
+
+				if (newConnection == true) 
+				{
+					std::cout << "Nouvelle connection\n";
+					list.push_back(addr);
+					callbacks.OnConnection(listenConnection);
+					callbacks.OnMsgReceived(listenConnection);
+				}
+
+				FD_CLR(listenConnection->s, &current_sockets);
+			}
+		}
 	}
 }

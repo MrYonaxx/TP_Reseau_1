@@ -29,7 +29,7 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	string message;
 
 	// Default parameter
-	int protocol = 0;
+	int protocol = 1;
 	int port = 8888;
 	string ip = "127.0.0.1";
 

@@ -8,12 +8,13 @@ namespace uqac::networkLib
 	{
 	
 		protected:
-			char buf[255];
-			struct addrinfo* info;
+			char buf[512];
 	
 		public:
 			SOCKET s;
 			std::string msg;
+			struct addrinfo* info;
+
 			virtual int Send(std::string message);
 			virtual int Receive();
 	
