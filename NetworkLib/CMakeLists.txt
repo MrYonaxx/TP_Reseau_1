@@ -9,5 +9,4 @@ project ("NetworkLib")
 
 # Incluez les sous-projets.
 add_subdirectory ("NetworkLib")
-add_subdirectory ("Client")
-add_subdirectory ("Server")
+add_subdirectory ("ClientServer")

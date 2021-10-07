@@ -10,26 +10,6 @@ void Test(std::shared_ptr<uqac::networkLib::Connection> a)
 	std::cout << "Test réussi." << std::endl;
 }
 
-int main()
-{
-	std::cout << "Hello CMake." << std::endl;
-	uqac::networkLib::NetworkLib A;
-	uqac::networkLib::ConfigCallback callbacks;
-	A.Initialize();
-	//callbacks.OnConnection = 
-	// TEST SERVER
-	
-	// Listen en AF_INET6 ne fonctionne pas
-	if(A.Listen("127.0.0.1", 8888, 1, callbacks) < 0)
-		std::cout << "Oups";
-	
-
-	A.Close();
-
-	return 0;
-}
-
-
 namespace uqac::networkLib
 {
 
