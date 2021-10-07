@@ -13,7 +13,6 @@ namespace uqac::networkLib
 		public:
 			SOCKET s;
 			std::string msg;
-			struct addrinfo* info;
 
 			virtual int Send(std::string message);
 			virtual int Receive();

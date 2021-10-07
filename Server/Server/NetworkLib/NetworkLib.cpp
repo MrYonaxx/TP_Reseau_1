@@ -5,30 +5,6 @@
 
 //using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
-void Test(std::shared_ptr<uqac::networkLib::Connection> a)
-{
-	std::cout << "Test réussi." << std::endl;
-}
-
-/*int main()
-{
-	std::cout << "Hello CMake." << std::endl;
-	uqac::networkLib::NetworkLib A;
-	uqac::networkLib::ConfigCallback callbacks;
-	A.Initialize();
-	//callbacks.OnConnection = 
-	// TEST SERVER
-	
-	// Listen en AF_INET6 ne fonctionne pas
-	if(A.Listen("127.0.0.1", 8888, 0, callbacks) < 0)
-		std::cout << "Oups";
-	
-
-	A.Close();
-
-	return 0;
-}
-*/
 
 namespace uqac::networkLib
 {
@@ -69,7 +45,7 @@ namespace uqac::networkLib
 		inet_pton(AF_INET, adressIP.c_str(), &info.sin_addr); // on set l'adresse ip	
 
 		//Creation de la socket
-		connectSocket = socket(info.sin_family, SOCK_STREAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+		connectSocket = socket(info.sin_family, protocol == 0 ? SOCK_STREAM : SOCK_DGRAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 		if (connectSocket == INVALID_SOCKET) {
 			WSACleanup();
 			return nullptr;
@@ -82,26 +58,25 @@ namespace uqac::networkLib
 			connectSocket = INVALID_SOCKET;
 		}
 		//Maybe try to reconnect here  ? :)
-
 		if (iResult == INVALID_SOCKET) {
 			WSACleanup();
 			return nullptr;
 		}
+
 
 		// Créer la connection
 		std::shared_ptr<Connection> connection;
 		if (protocol == 0)
 			connection = std::make_shared<ConnectionTCP>(connectSocket);
 		else
-			connection = std::make_shared<ConnectionUDP>(connectSocket, port);
+			connection = std::make_shared<ConnectionUDP>(connectSocket, info);
 
 		// Lance le thread
 		threadRunning = true;
-		threadNetwork = std::thread(&NetworkLib::UpdateListenTCP, this, NULL, connection, callbacks);
+		threadNetwork = std::thread(&NetworkLib::UpdateListen, this, NULL, connection, callbacks);
 
 		// Return la connection
 		return connection;
-
 	}
 
 
@@ -146,24 +121,24 @@ namespace uqac::networkLib
 			}
 		}
 
-		//threadRunning = true;
-		//threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, protocol, callbacks);
 		// Lancer le thread 
 		if (protocol == 0)
 		{
 			threadRunning = true;
-			threadNetwork = std::thread(&NetworkLib::UpdateListenTCP, this, listeningSocket, nullptr, callbacks);
+			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, callbacks);
 		}
 		else 
 		{
 			threadRunning = true;
-			threadNetwork = std::thread(&NetworkLib::UpdateListenUDP, this, std::make_shared<ConnectionUDP>(listeningSocket, port), callbacks);
+			threadNetwork = std::thread(&NetworkLib::UpdateListenUDP, this, std::make_shared<ConnectionUDP>(listeningSocket, info), callbacks);
 		}
 		return 1;
 
 	}
 
-	void NetworkLib::UpdateListenTCP(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks)
+
+
+	void NetworkLib::UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks)
 	{
 		std::vector<std::shared_ptr<Connection>> listReceive;
 
@@ -232,9 +207,10 @@ namespace uqac::networkLib
 
 	}
 
-	void NetworkLib::UpdateListenUDP(std::shared_ptr<Connection> listenConnection, ConfigCallback callbacks)
+	void NetworkLib::UpdateListenUDP(std::shared_ptr<ConnectionUDP> listenConnection, ConfigCallback callbacks)
 	{
-		std::vector<addrinfo*> list;
+		std::vector<sockaddr_in*> list;
+		std::vector<std::shared_ptr<Connection>> listReceive;
 
 		fd_set current_sockets;
 
@@ -244,32 +220,39 @@ namespace uqac::networkLib
 		{
 			FD_SET(listenConnection->s, &current_sockets);
 			int socketCount = select(0, &current_sockets, nullptr, nullptr, nullptr);
+
 			if (FD_ISSET(listenConnection->s, &current_sockets))
 			{
+				// Receive
 				if (listenConnection->Receive() < 0) 
 				{
 					// error
 					std::cout << "Echec";
 					return;
 				}
-				addrinfo* addr = listenConnection->info;
+
+				// Check si nouvelle connection ou ancienne
+				sockaddr_in* addr = &listenConnection->info;
 				bool newConnection = true;
 				for (size_t i = 0; i < list.size(); i++)
 				{
 					if (list[i] == addr)
 					{
 						std::cout << "Msg Received\n";
-						callbacks.OnMsgReceived(listenConnection);
+						callbacks.OnMsgReceived(listReceive[i]);
 						newConnection = false;
 					}
 				}
 
+				// Nouvelle connection détectée
 				if (newConnection == true) 
 				{
 					std::cout << "Nouvelle connection\n";
 					list.push_back(addr);
-					callbacks.OnConnection(listenConnection);
-					callbacks.OnMsgReceived(listenConnection);
+					std::shared_ptr<ConnectionUDP> newConnection = std::make_shared<ConnectionUDP>(listenConnection->s, listenConnection->info);
+					callbacks.OnConnection(newConnection);
+					callbacks.OnMsgReceived(newConnection);
+					listReceive.push_back(newConnection);
 				}
 
 				FD_CLR(listenConnection->s, &current_sockets);

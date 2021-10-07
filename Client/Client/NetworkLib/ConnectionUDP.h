@@ -9,12 +9,13 @@ namespace uqac::networkLib
 	class ConnectionUDP : public Connection
 	{
 	private:
-		sockaddr_in info;
 		int slen;
 
 	public:
+		sockaddr_in info;
+
 		ConnectionUDP();
-		ConnectionUDP(SOCKET s, sockaddr_in info); // faudrait filer un pointeur
+		ConnectionUDP(SOCKET s, sockaddr_in info);
 		~ConnectionUDP();
 
 	public:

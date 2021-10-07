@@ -29,9 +29,7 @@ namespace uqac::networkLib
 	{
 
 	private:
-		//SOCKET listeningSocket;
 		Terminal terminal;
-
 		std::thread threadNetwork;
 		bool threadRunning;
 
@@ -49,6 +47,7 @@ namespace uqac::networkLib
 
 		// Pour les thread 
 		void UpdateListen(SOCKET listeningSocket, std::shared_ptr<Connection> defaultReceive, ConfigCallback callbacks);
+		void UpdateListenUDP(std::shared_ptr<ConnectionUDP> defaultReceive, ConfigCallback callbacks);
 	};
 
 

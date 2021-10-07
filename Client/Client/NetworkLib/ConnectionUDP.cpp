@@ -10,15 +10,8 @@ namespace uqac::networkLib
 	ConnectionUDP::ConnectionUDP(SOCKET s, sockaddr_in info)
 	{
 		this->s = s;
-		this->info = info,
-
-		//sockaddr_in info;
+		this->info = info;
 		slen = sizeof(info);
-
-		/*memset((char*)&info, 0, sizeof(info));
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
 	}
 
 	ConnectionUDP::~ConnectionUDP()
@@ -37,26 +30,22 @@ namespace uqac::networkLib
 			exit(EXIT_FAILURE);
 		}
 
+		//free(buf);
+
 		return 0;
 	}
 
 	int ConnectionUDP::Receive()
 	{
-		/**sockaddr_in info;
-		int slen = sizeof(info);
-
-		memset((char*)&info, 0, sizeof(info));
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.S_un.S_addr = INADDR_ANY;*/
-
-		if (recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen) == SOCKET_ERROR)
+		int iResult = recvfrom(s, buf, strlen(buf), 0, (struct sockaddr*)&info, &slen);
+		if (iResult == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
-
-		free(buf);
+		std::string message(buf, iResult);
+		msg = message;
+		//free(buf);
 		return 0;
 	}
 

@@ -8,14 +8,20 @@ namespace uqac::networkLib
 {
 	class ConnectionUDP : public Connection
 	{
+	private:
+		int slen;
+
 	public:
+		sockaddr_in info;
+
 		ConnectionUDP();
-		ConnectionUDP(SOCKET s); // faudrait filer un pointeur
+		ConnectionUDP(SOCKET s, sockaddr_in info);
 		~ConnectionUDP();
 
 	public:
-		int Send(int port);
-		int Receive(int port);
+		int Send(std::string message) override;
+		int Receive() override;
+
 	};
 }
 

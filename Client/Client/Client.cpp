@@ -19,7 +19,7 @@ void ConnectionLost(std::shared_ptr<Connection> newMsg)
 	std::cout << "Connection lost";
 
 	// Handle things
-	//
+	// Abort programm
 
 }
 

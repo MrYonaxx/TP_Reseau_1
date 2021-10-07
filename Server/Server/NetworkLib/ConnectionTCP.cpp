@@ -22,14 +22,12 @@ namespace uqac::networkLib
 
 	int ConnectionTCP::Send(std::string message)
 	{
-		//buf = (char*) message;
 		int iResult = send(s, message.c_str(), (int)strlen(message.c_str()), 0); // à opti
 		if (iResult == SOCKET_ERROR) {
 			std::cerr << "send failed : ", WSAGetLastError();
 			closesocket(s);
 			return -1;
 		}
-		//cout << "Send !";
 		return 1;
 	}
 
@@ -40,9 +38,9 @@ namespace uqac::networkLib
 			iResult = recv(s, buf, (int)strlen(buf), 0);
 			if (iResult > 0) 
 			{
+				// Simplifiable
 				std::string message(buf, iResult);
 				msg = message;
-				//Call back message
 				return 1;
 			}
 			return -1;
