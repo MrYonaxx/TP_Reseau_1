@@ -6,8 +6,8 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "NetworkLib/NetworkLib.h"
-#include "windows.h" 
+#include "windows.h"
+#include "NetworkLib.h"
 
 using namespace std;
 using namespace uqac::networkLib;
