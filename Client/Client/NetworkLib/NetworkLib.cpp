@@ -5,34 +5,10 @@
 
 //using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
-void Test(std::shared_ptr<uqac::networkLib::Connection> a)
-{
-	std::cout << "Test réussi." << std::endl;
-}
-
-int main()
-{
-	std::cout << "Hello CMake." << std::endl;
-	uqac::networkLib::NetworkLib A;
-	uqac::networkLib::ConfigCallback callbacks;
-	A.Initialize();
-	//callbacks.OnConnection = 
-	// TEST SERVER
-	
-	// Listen en AF_INET6 ne fonctionne pas
-	if(A.Listen("127.0.0.1", 8888, 1, callbacks) < 0)
-		std::cout << "Oups";
-	
-
-	A.Close();
-
-	return 0;
-}
-
 
 namespace uqac::networkLib
 {
-
+	
 	int NetworkLib::Initialize()
 	{
 		// Initialize winstock
@@ -52,7 +28,7 @@ namespace uqac::networkLib
 	void NetworkLib::Close()
 	{
 		threadRunning = false;
-		if (threadNetwork.joinable())
+		if(threadNetwork.joinable())
 			threadNetwork.join();
 		WSACleanup();
 	}
@@ -123,16 +99,16 @@ namespace uqac::networkLib
 			return -1;
 		}
 
-		//Setup bind
+		//Setup TCP Listening
 		int iResult = bind(listeningSocket, (sockaddr*)&info, sizeof(info));
-		if (iResult == SOCKET_ERROR)
+		if (iResult == SOCKET_ERROR) 
 		{
 			std::cout << "Can't bind listening socket.";
 			closesocket(listeningSocket);
 			WSACleanup();
 			return -1;
 		}
-
+		
 		if (protocol == 0)
 		{
 			//Listening (only for TCP)
@@ -173,12 +149,12 @@ namespace uqac::networkLib
 		FD_ZERO(&current_sockets);
 
 		// Ajoute listening aux sockets
-		if (listeningSocket != NULL)
+		if (listeningSocket != NULL) 
 		{
 			FD_SET(listeningSocket, &current_sockets);
 		}
 		// Ajoute le default receive à la liste
-		if (defaultReceive != nullptr)
+		if (defaultReceive != nullptr) 
 		{
 			listReceive.push_back(defaultReceive);
 			FD_SET(defaultReceive->s, &current_sockets);
@@ -186,7 +162,6 @@ namespace uqac::networkLib
 
 		while (threadRunning)
 		{
-			// en udp on doit FD_SET le listening socket car ça se reset à chaque fois
 			reading_sockets = current_sockets;
 			int socketCount = select(0, &reading_sockets, nullptr, nullptr, nullptr);
 			if (socketCount < 0)
@@ -203,12 +178,11 @@ namespace uqac::networkLib
 				// On ajoute la nouvelle connection au set
 				FD_SET(newConnection->s, &current_sockets);
 				listReceive.push_back(newConnection);
-				std::cout << "Nouvelle connection\n";
 				callbacks.OnConnection(newConnection);
 			}
 
 			// On parcourt la liste de connection
-			for (int i = listReceive.size() - 1; i >= 0; --i)
+			for (int i = listReceive.size()-1; i >= 0; --i)
 			{
 				if (FD_ISSET(listReceive[i]->s, &reading_sockets))
 				{
@@ -220,9 +194,9 @@ namespace uqac::networkLib
 						listReceive.erase((listReceive.begin() + i));
 						std::cout << "Nouvelle deconnection\n";
 					}
-					else
+					else 
 					{
-						callbacks.OnMsgReceived(listReceive[i]);
+						callbacks.OnMsgReceived(listReceive[i]);				
 					}
 				}
 			}

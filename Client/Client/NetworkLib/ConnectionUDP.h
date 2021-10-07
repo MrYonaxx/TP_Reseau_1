@@ -21,7 +21,6 @@ namespace uqac::networkLib
 	public:
 		int Send(std::string message) override;
 		int Receive() override;
-
 	};
 }
 

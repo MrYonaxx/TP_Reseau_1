@@ -5,34 +5,10 @@
 
 //using namespace std; // à cause de ça la fonction bind des socket se confond avec le bind des std::function
 
-void Test(std::shared_ptr<uqac::networkLib::Connection> a)
-{
-	std::cout << "Test réussi." << std::endl;
-}
-
-int main()
-{
-	std::cout << "Hello CMake." << std::endl;
-	uqac::networkLib::NetworkLib A;
-	uqac::networkLib::ConfigCallback callbacks;
-	A.Initialize();
-	//callbacks.OnConnection = 
-	// TEST SERVER
-	
-	// Listen en AF_INET6 ne fonctionne pas
-	if(A.Listen("127.0.0.1", 8888, 1, callbacks) < 0)
-		std::cout << "Oups";
-	
-
-	A.Close();
-
-	return 0;
-}
-
 
 namespace uqac::networkLib
 {
-
+	
 	int NetworkLib::Initialize()
 	{
 		// Initialize winstock
@@ -52,7 +28,7 @@ namespace uqac::networkLib
 	void NetworkLib::Close()
 	{
 		threadRunning = false;
-		if (threadNetwork.joinable())
+		if(threadNetwork.joinable())
 			threadNetwork.join();
 		WSACleanup();
 	}
@@ -116,7 +92,7 @@ namespace uqac::networkLib
 		//Creation du socket
 		SOCKET listeningSocket = INVALID_SOCKET;
 		listeningSocket = socket(info.sin_family, protocol == 0 ? SOCK_STREAM : SOCK_DGRAM, protocol == 0 ? IPPROTO_TCP : IPPROTO_UDP);
-		if (listeningSocket == INVALID_SOCKET)
+		if (listeningSocket == INVALID_SOCKET) 
 		{
 			std::cout << "Can't initialize listening socket.";
 			WSACleanup();
@@ -151,7 +127,7 @@ namespace uqac::networkLib
 			threadRunning = true;
 			threadNetwork = std::thread(&NetworkLib::UpdateListen, this, listeningSocket, nullptr, callbacks);
 		}
-		else
+		else 
 		{
 			threadRunning = true;
 			threadNetwork = std::thread(&NetworkLib::UpdateListenUDP, this, std::make_shared<ConnectionUDP>(listeningSocket, info), callbacks);
@@ -173,12 +149,12 @@ namespace uqac::networkLib
 		FD_ZERO(&current_sockets);
 
 		// Ajoute listening aux sockets
-		if (listeningSocket != NULL)
+		if (listeningSocket != NULL) 
 		{
 			FD_SET(listeningSocket, &current_sockets);
 		}
 		// Ajoute le default receive à la liste
-		if (defaultReceive != nullptr)
+		if (defaultReceive != nullptr) 
 		{
 			listReceive.push_back(defaultReceive);
 			FD_SET(defaultReceive->s, &current_sockets);
@@ -248,7 +224,7 @@ namespace uqac::networkLib
 			if (FD_ISSET(listenConnection->s, &current_sockets))
 			{
 				// Receive
-				if (listenConnection->Receive() < 0)
+				if (listenConnection->Receive() < 0) 
 				{
 					// error
 					std::cout << "Echec";
@@ -269,7 +245,7 @@ namespace uqac::networkLib
 				}
 
 				// Nouvelle connection détectée
-				if (newConnection == true)
+				if (newConnection == true) 
 				{
 					std::cout << "Nouvelle connection\n";
 					list.push_back(addr);

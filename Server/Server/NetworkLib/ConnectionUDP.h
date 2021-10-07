@@ -15,7 +15,7 @@ namespace uqac::networkLib
 		sockaddr_in info;
 
 		ConnectionUDP();
-		ConnectionUDP(SOCKET s, sockaddr_in info);
+		ConnectionUDP(SOCKET s, sockaddr_in info); 
 		~ConnectionUDP();
 
 	public:

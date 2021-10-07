@@ -34,7 +34,7 @@ namespace uqac::networkLib
 		bool threadRunning;
 
 
-
+		
 
 	public:
 
