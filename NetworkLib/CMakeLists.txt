@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 project ("NetworkLib")
 
+
 # Incluez les sous-projets.
 add_subdirectory ("NetworkLib")
 add_subdirectory ("ClientServer")

@@ -71,16 +71,27 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 	if (answer == "0") {
 		//Client
 		// Default parameter
-		int protocol = 1;
+		int protocol = 0;
 		int port = 8888;
 		string ip = "127.0.0.1";
 
 		//Validate parameters
-		if (argc == 6)
+		if (argc == 7)
 		{
-			protocol = (int)argv[5];
-			port = (int)argv[3];
-			ip = argv[5];
+			char* p;
+			long arg = strtol(argv[6], &p, 10);
+			protocol = (int)arg;
+
+			arg = strtol(argv[4], &p, 10);
+			port = arg;
+
+			ip = std::string(argv[2]);
+			std::cout << ip;
+			std::cout << "\n";
+			std::cout << port;
+			std::cout << "\n";
+			std::cout << protocol;
+			std::cout << "\n";
 		}
 		else if (argc > 1)
 		{
@@ -134,16 +145,27 @@ int main(int argc, char** argv) //usage: -ip [IP] -port [PORT] -protocole [0=TCP
 		string message;
 
 		// Default parameter
-		int protocol = 1;
+		int protocol = 0;
 		int port = 8888;
 		string ip = "127.0.0.1";
 
 		//Validate parameters
-		if (argc == 6)
+		if (argc == 7)
 		{
-			protocol = (int)argv[5];
-			port = (int)argv[3];
-			ip = argv[5];
+			char* p;
+			long arg = strtol(argv[6], &p, 10);
+			protocol = (int)arg;
+
+			arg = strtol(argv[4], &p, 10);
+			port = arg;
+
+			ip = std::string(argv[2]);
+			std::cout << ip;
+			std::cout << "\n";
+			std::cout << port;
+			std::cout << "\n";
+			std::cout << protocol;
+			std::cout << "\n";
 		}
 		else if (argc > 1)
 		{
